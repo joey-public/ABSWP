@@ -14,14 +14,25 @@ import time
 import random
 import pprint
 
-def isValidChessBoard(board:dict)->bool:
-    global valid_spaces
-    pawn_count, knight_count, bishop_count, rook_count = 0,0,0,0
-    queen_count, king_count = 0, 0
-    for k, v in board.values():
-        if k not in valid_spaces: 
+def isValidChessBoard(board:dict, valid_spaces:list, valid_pieces:list)->bool:
+    pieces = valid_pieces.copy()
+    if 'bking' not in pieces: return False
+    if 'wking' not in pieces: return False
+    for space, piece in board.items():
+        if space not in valid_spaces:
+            print("Invalid Space: {}".format(space))
             return False
-    return False 
+        if piece not in valid_pieces:
+            print("Invalid Piece: {}".format(piece))
+            return False
+        elif piece == "":
+            pass
+        elif piece not in pieces:
+            print('Too many: {}s'.format(piece))
+            return False
+        else:
+            pieces.remove(piece)
+    return True
 
 def generateSpaces(valid_cols:list)->list:
     valid_spaces = []
@@ -31,7 +42,7 @@ def generateSpaces(valid_cols:list)->list:
     return valid_spaces
 
 def generatePieces(valid_pieces:list)->list:
-    pieces = []
+    pieces = [""]
     for p in valid_pieces:
         if p == 'pawn':
             for i in range(16):
@@ -47,26 +58,30 @@ def generatePieces(valid_pieces:list)->list:
                 else: pieces.append('b'+p)
     return pieces
 
-def generateChessBoard(valid_cols:list, valid_pieces:list)->dict:
+def generateChessBoard(spaces:list, p:list)->dict:
     board = {}
-    spaces = generateSpaces(valid_cols)
-    pieces = generatePieces(valid_pieces)
+    pieces = p.copy()#need to make a copy of the pieces so that the origonal 
+                     #is not modified by the pop() call 
     random.shuffle(spaces)
     random.shuffle(pieces)
     for i,s in enumerate(spaces):
         num = random.random()
         if i == 0: 
             board[s] = 'wking'
+            pieces.remove('wking')
         elif i == 1:
             board[s] = 'bking'
+            pieces.remove('bking')
         elif num > 0.5 and len(pieces) > 0:
             board[s] = pieces.pop(0)
         else:
             board[s] = ""
     return board 
 
-valid_pieces = ['pawn','knight', 'bishop', 'rook', 'queen']
+valid_pieces = ['pawn','knight', 'bishop', 'rook', 'queen', 'king']
 valid_cols = ['a','b','c','d','e','f','g','h']
 
-board = generateChessBoard(valid_cols, valid_pieces) 
-pprint.pprint(board)
+s = generateSpaces(valid_cols)
+p = generatePieces(valid_pieces)
+board = generateChessBoard(s,p) 
+print(isValidChessBoard(board,s,p))
